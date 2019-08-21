@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'climbcomp'
+
+puts "Climbcomp CLI v#{Climbcomp::VERSION} (Ruby #{RUBY_VERSION})"

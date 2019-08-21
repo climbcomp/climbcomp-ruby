@@ -1,0 +1,9 @@
+version: "3.4"
+
+services:
+  app:
+    image: "climbcomp/climbcomp-ruby:${DOCKER_TAG:-latest}"
+    build:
+      context: "."
+    volumes:
+      - ".:/usr/src/app"
