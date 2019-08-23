@@ -12,7 +12,7 @@ test:
 
 .PHONY: tag
 tag:
-	@echo "TODO"
+	docker-compose run --rm app ./bin/tag
 
 .PHONY: release
 release:

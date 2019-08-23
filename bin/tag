@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GH_TOKEN=${GH_TOKEN:?} # Required
+TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG:?} # Required
+
+CURRENT_BRANCH="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
+REPO_URL="https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
+# shellcheck disable=SC2002
+VERSION="$(cat ./VERSION | xargs)"
+GIT_TAG="v${VERSION}"
+
+# Only supporting tags created off of master
+if [ "${CURRENT_BRANCH}" != "master" ]; then
+    echo "CURRENT_BRANCH (${CURRENT_BRANCH}) is not master!"
+    echo "aborting..."
+    exit 1
+fi
+
+if [ -z "$(git tag -l "${GIT_TAG}")" ]; then
+    echo "Tagging new version: ${GIT_TAG}"
+    git config user.email "travis@travis-ci.org"
+    git config user.name "Travis CI"
+    git tag -a "${GIT_TAG}" -m "Release of version ${VERSION}"
+    git push -q "${REPO_URL}" --tags > /dev/null 2>&1
+else
+    echo "Tag already exists: ${GIT_TAG}"
+fi

@@ -3,6 +3,9 @@ version: "3.4"
 services:
   app:
     image: "climbcomp/climbcomp-ruby:${DOCKER_TAG:-latest}"
+    environment:
+      - GH_TOKEN
+      - TRAVIS_REPO_SLUG
     build:
       context: "."
     volumes:
