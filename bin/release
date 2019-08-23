@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GEM_HOST_API_KEY=${GEM_HOST_API_KEY:?} # Required
+
+# shellcheck disable=SC2002
+VERSION="$(cat ./VERSION | xargs)"
+
+
+function check-for-existing-version {
+    # This is the simplest way to find out whether a given version exists.
+    # The alternative is to parse the /api/v1/versions response.
+    VERSION_URL="https://rubygems.org/api/v1/downloads/climbcomp-${VERSION}.json"
+    VERSION_RESPONSE=$(curl -sL -w "%{http_code}" -o /dev/null -I "${VERSION_URL}")
+    if [ "${VERSION_RESPONSE}" == "200" ]; then
+        echo "Version ${VERSION} already exists on rubygems.org!"
+        echo "Aborting..."
+        exit 1
+    fi
+}
+
+function setup-gem-credentials {
+    mkdir -p ~/.gem
+    touch ~/.gem/credentials
+    chmod 0600 ~/.gem/credentials
+    printf -- "---\n:rubygems_api_key: %s\n" "${GEM_HOST_API_KEY}" > ~/.gem/credentials
+}
+
+function teardown-gem-credentials {
+    rm -f ~/.gem/credentials
+}
+
+function release-gem {
+    echo "Building gem version: ${VERSION}"
+    rake build
+    echo "Pushing gem version: ${VERSION}"
+    gem push "./pkg/climbcomp-${VERSION}.gem"
+}
+
+check-for-existing-version
+setup-gem-credentials
+release-gem
+teardown-gem-credentials

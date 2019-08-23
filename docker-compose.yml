@@ -4,6 +4,7 @@ services:
   app:
     image: "climbcomp/climbcomp-ruby:${DOCKER_TAG:-latest}"
     environment:
+      - GEM_HOST_API_KEY
       - GH_TOKEN
       - TRAVIS_REPO_SLUG
     build:

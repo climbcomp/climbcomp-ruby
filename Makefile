@@ -16,7 +16,7 @@ tag:
 
 .PHONY: release
 release:
-	@echo "TODO"
+	docker-compose run --rm app ./bin/release
 
 # local targets
 
