@@ -10,6 +10,10 @@ build:
 test:
 	docker-compose run --rm app rake test
 
+.PHONY: tag
+tag:
+	@echo "TODO"
+
 .PHONY: release
 release:
 	@echo "TODO"

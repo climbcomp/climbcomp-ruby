@@ -5,7 +5,15 @@ sudo: required
 services:
   - docker
 
-script:
-  - make build
-  - make test
-  - make release
+jobs:
+  include:
+    - stage: test
+      script:
+        - make build
+        - make test
+    - stage: tag
+      if: branch = master AND tag IS blank
+      script: make tag
+    - stage: release
+      if: tag IS present
+      script: make release
