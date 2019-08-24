@@ -1,43 +1,89 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GEM_HOST_API_KEY=${GEM_HOST_API_KEY:?} # Required
+CURRENT_BRANCH="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
 
+GEM_HOST_API_KEY=${GEM_HOST_API_KEY:?} # Required
+GH_TOKEN=${GH_TOKEN:?} # Required
+TRAVIS_BRANCH=${TRAVIS_BRANCH:-$CURRENT_BRANCH}
+TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST:-false}
+TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG:?} # Required
+
+REPO_URL="https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
 # shellcheck disable=SC2002
 VERSION="$(cat ./VERSION | xargs)"
+GIT_TAG="v${VERSION}"
 
 
-function check-for-existing-version {
-    # This is the simplest way to find out whether a given version exists.
-    # The alternative is to parse the /api/v1/versions response.
-    VERSION_URL="https://rubygems.org/api/v1/downloads/climbcomp-${VERSION}.json"
-    VERSION_RESPONSE=$(curl -sL -w "%{http_code}" -o /dev/null -I "${VERSION_URL}")
-    if [ "${VERSION_RESPONSE}" == "200" ]; then
-        echo "Version ${VERSION} already exists on rubygems.org!"
-        echo "Aborting..."
-        exit 1
+function ensure-branch-is-master {
+    if [ "${TRAVIS_BRANCH}" != "master" ]; then
+        echo "TRAVIS_BRANCH is not master: ${TRAVIS_BRANCH}"
+        exit 0
     fi
 }
 
-function setup-gem-credentials {
+function ensure-not-pull-request {
+    if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+        echo "TRAVIS_PULL_REQUEST is not false: ${TRAVIS_PULL_REQUEST}"
+        exit 0
+    fi
+}
+
+function ensure-not-already-tagged {
+    echo "Fetching latest tags..."
+    git fetch --tags "${REPO_URL}" > /dev/null 2>&1
+    if [ "$(git tag -l "${GIT_TAG}")" != "" ]; then
+        echo "Tag already exists: ${GIT_TAG}"
+        exit 0
+    fi
+}
+
+function ensure-not-already-published {
+    # This is the simplest way to find out whether a given version exists.
+    # The alternative is to parse the /api/v1/versions response.
+    local url="https://rubygems.org/api/v1/downloads/climbcomp-${VERSION}.json"
+    local response
+    response=$(curl -sL -w "%{http_code}" -o /dev/null -I "${url}")
+    if [ "${response}" == "200" ]; then
+        echo "Version already exists on rubygems.org: ${VERSION}"
+        exit 0
+    fi
+}
+
+
+function create-git-tag {
+    if [ "$(git config user.email)" == "" ]; then
+        git config user.email "travis@travis-ci.org"
+    fi
+    if [ "$(git config user.name)" == "" ]; then
+        git config user.name "Travis CI"
+    fi
+    echo "Tagging new version: ${GIT_TAG}"
+    git tag -a "${GIT_TAG}" -m "Release of version ${VERSION}"
+    git push -q "${REPO_URL}" --tags > /dev/null 2>&1
+}
+
+
+function publish-gem {
     mkdir -p ~/.gem
     touch ~/.gem/credentials
     chmod 0600 ~/.gem/credentials
     printf -- "---\n:rubygems_api_key: %s\n" "${GEM_HOST_API_KEY}" > ~/.gem/credentials
-}
 
-function teardown-gem-credentials {
-    rm -f ~/.gem/credentials
-}
-
-function release-gem {
     echo "Building gem version: ${VERSION}"
     rake build
     echo "Pushing gem version: ${VERSION}"
     gem push "./pkg/climbcomp-${VERSION}.gem"
+
+    rm -f ~/.gem/credentials
 }
 
-check-for-existing-version
-setup-gem-credentials
-release-gem
-teardown-gem-credentials
+
+ensure-branch-is-master
+ensure-not-pull-request
+ensure-not-already-tagged
+ensure-not-already-published
+create-git-tag
+
+ensure-not-already-published
+publish-gem

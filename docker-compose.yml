@@ -7,6 +7,7 @@ services:
       - GEM_HOST_API_KEY
       - GH_TOKEN
       - TRAVIS_BRANCH
+      - TRAVIS_PULL_REQUEST
       - TRAVIS_REPO_SLUG
     build:
       context: "."

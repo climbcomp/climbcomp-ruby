@@ -10,10 +10,6 @@ build:
 test:
 	docker-compose run --rm app rake test
 
-.PHONY: tag
-tag:
-	docker-compose run --rm app ./bin/tag
-
 .PHONY: release
 release:
 	docker-compose run --rm app ./bin/release
