@@ -74,7 +74,7 @@ function commit-and-push {
         git add .
         git commit -m "chore(release): ${VERSION} [skip ci]"
         echo " -> Pushing changes"
-        git push -q "${REPO_URL}" > /dev/null 2>&1
+        git push -q "${REPO_URL}" "${TRAVIS_BRANCH}" > /dev/null 2>&1
     else
         echo " -> No changes to commit"
     fi
