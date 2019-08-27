@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -ne 2 ]; then
+  echo 1>&2 "Usage: $0 VERSION VERSION_SRC_PATH"
+  exit 1
+fi
+
+VERSION=$1
+VERSION_SRC_PATH=$2
+
+sed -i.bak "s/VERSION = \"[^\"]*\"/VERSION = \"${VERSION}\"/" "${VERSION_SRC_PATH}"
+rm -f "${VERSION_SRC_PATH}.bak"

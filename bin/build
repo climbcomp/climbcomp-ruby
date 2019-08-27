@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# shellcheck disable=SC2002
+VERSION="$(cat ./VERSION | xargs)"
+VERSION_SRC_PATH="./lib/climbcomp/version.rb"
+
+./bin/update-version "${VERSION}" "${VERSION_SRC_PATH}"
+
+# Not much to build for ruby, so just install the gem locally
+rake install

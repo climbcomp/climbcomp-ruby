@@ -78,8 +78,7 @@ function update-version-src {
     echo " -> Checking out ${TRAVIS_BRANCH}"
     git checkout "${TRAVIS_BRANCH}"
     echo " -> Updating ${VERSION_SRC_PATH} to ${VERSION}"
-    sed -i.bak "s/VERSION = \"[^\"]*\"/VERSION = \"${VERSION}\"/" "${VERSION_SRC_PATH}"
-    rm -f "${VERSION_SRC_PATH}.bak"
+    ./bin/update-version "${VERSION}" "${VERSION_SRC_PATH}"
 }
 
 function configure-git {

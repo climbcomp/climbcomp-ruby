@@ -8,6 +8,6 @@ COPY Gemfile* ./
 RUN bundle install
 
 COPY . .
-RUN rake install
+RUN ./bin/build
 
 CMD ["climbcomp"]
