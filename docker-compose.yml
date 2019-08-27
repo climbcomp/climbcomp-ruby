@@ -9,6 +9,7 @@ services:
       - TRAVIS_BRANCH
       - TRAVIS_PULL_REQUEST
       - TRAVIS_REPO_SLUG
+      - VERSION_SRC_PATH=./lib/climbcomp/version.rb
     build:
       context: "."
     volumes:
