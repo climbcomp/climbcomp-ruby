@@ -75,6 +75,8 @@ function ensure-not-already-published {
 }
 
 function update-version-src {
+    echo " -> Checking out ${TRAVIS_BRANCH}"
+    git checkout "${TRAVIS_BRANCH}"
     echo " -> Updating ${VERSION_SRC_PATH} to ${VERSION}"
     sed -i.bak "s/VERSION = \"[^\"]*\"/VERSION = \"${VERSION}\"/" "${VERSION_SRC_PATH}"
     rm -f "${VERSION_SRC_PATH}.bak"
@@ -91,8 +93,6 @@ function configure-git {
 }
 
 function commit-and-push {
-    echo " -> Checking out ${TRAVIS_BRANCH}"
-    git checkout "${TRAVIS_BRANCH}"
     echo " -> Checking for changes"
     git add -N .
     if ! git diff --exit-code > /dev/null; then
